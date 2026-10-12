@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial Master: Orca, Linear, GitHub & MCP com Antigravity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-card: #161f30;
+      --bg-card-hover: #1e293b;
+      --border-color: #26334d;
+      --border-accent: #3b82f6;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-purple: #a855f7;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --code-bg: #0d131f;
+      --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+    }
+
+    /* Layout */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 290px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--accent-blue);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-group-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin: 18px 0 8px 12px;
+      font-weight: 700;
+    }
+
+    .nav-list {
+      list-style: none;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      margin-bottom: 4px;
+    }
+
+    .nav-item a:hover, .nav-item a.active {
+      color: #fff;
+      background: rgba(56, 189, 248, 0.12);
+      border-left: 3px solid var(--accent-blue);
+    }
+
+    .sidebar-actions {
+      margin-top: auto;
+      padding-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      color: white;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-blue);
+    }
+
+    /* Main Content */
+    .content-area {
+      flex: 1;
+      padding: 40px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9)), radial-gradient(circle at top right, rgba(56, 189, 248, 0.15), transparent);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-badges {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    .hero-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 800px;
+      line-height: 1.6;
+    }
+
+    /* Modules & Sections */
+    .module-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 32px;
+      margin-bottom: 36px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .module-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .module-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .module-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Architecture Grid */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin: 24px 0;
+    }
+
+    .arch-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 22px;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .arch-card:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .arch-card-icon {
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+
+    .arch-card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .arch-card-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    /* Step-by-Step Flow */
+    .step-box {
+      display: flex;
+      gap: 20px;
+      margin: 20px 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 22px;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      color: #fff;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    /* UI Mockup Presentation Component */
+    .mockup-window {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 24px 0;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .mockup-header {
+      background: #1e293b;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .mockup-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .mockup-title {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      font-family: var(--font-mono);
+      margin-left: 8px;
+    }
+
+    .mockup-body {
+      display: grid;
+      grid-template-columns: 240px 1fr 280px;
+      min-height: 280px;
+    }
+
+    .mockup-sidebar {
+      background: #131d31;
+      border-right: 1px solid #1e293b;
+      padding: 14px;
+    }
+
+    .mockup-sidebar-item {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mockup-sidebar-item.active {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    .mockup-terminal {
+      background: #090d16;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+    }
+
+    .mockup-preview {
+      background: #111827;
+      border-left: 1px solid #1e293b;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Code Blocks */
+    .code-container {
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin: 14px 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .code-header {
+      background: #141b2d;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .copy-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent-blue);
+      color: #000;
+    }
+
+    pre code {
+      display: block;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      color: #e2e8f0;
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+
+    /* Tables */
+    .styled-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.9rem;
+      background: var(--bg-card);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .styled-table th, .styled-table td {
+      padding: 14px 18px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .styled-table th {
+      background: #162238;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .styled-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      border-left: 4px solid var(--accent-blue);
+      background: rgba(56, 189, 248, 0.08);
+      padding: 16px 20px;
+      border-radius: 0 10px 10px 0;
+      margin: 18px 0;
+    }
+
+    .callout-title {
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+
+    .callout-content {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .callout-success {
+      border-left-color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.08);
+    }
+    .callout-success .callout-title { color: #34d399; }
+
+    .callout-warning {
+      border-left-color: var(--accent-amber);
+      background: rgba(245, 158, 11, 0.08);
+    }
+    .callout-warning .callout-title { color: #fbbf24; }
+
+    /* Interactive Checklist */
+    .checklist {
+      list-style: none;
+      margin: 18px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .checklist-item:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-card-hover);
+    }
+
+    .checklist-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent-blue);
+      cursor: pointer;
+    }
+
+    /* Print Styles (Strictly Optimized for PDF Export) */
+    @media print {
+      @page {
+        margin: 1.2cm;
+        size: A4 portrait;
+      }
+
+      body {
+        background: #fff !important;
+        color: #111827 !important;
+        font-size: 10.5pt;
+      }
+
+      .sidebar, .sidebar-actions, .copy-btn, .btn, .no-print {
+        display: none !important;
+      }
+
+      .content-area {
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+
+      .hero-banner {
+        background: #f8fafc !important;
+        border: 2px solid #cbd5e1 !important;
+        color: #0f172a !important;
+        padding: 20px !important;
+        margin-bottom: 25px !important;
+        page-break-after: avoid;
+      }
+
+      .hero-title {
+        color: #0f172a !important;
+        font-size: 20pt !important;
+      }
+
+      .hero-desc {
+        color: #475569 !important;
+        font-size: 11pt !important;
+      }
+
+      .module-card {
+        background: #fff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+        padding: 20px 0 !important;
+        margin-bottom: 25px !important;
+        page-break-inside: avoid;
+      }
+
+      .module-title {
+        color: #0f172a !important;
+        font-size: 15pt !important;
+      }
+
+      .arch-card, .step-box, .mockup-window, .callout {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #1e293b !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+      }
+
+      .arch-card-title, .step-title, .callout-title {
+        color: #0f172a !important;
+      }
+
+      .code-container {
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+
+      .code-header {
+        background: #e2e8f0 !important;
+        color: #334155 !important;
+      }
+
+      pre code {
+        color: #0f172a !important;
+        font-size: 9pt !important;
+      }
+
+      .styled-table {
+        background: #fff !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+
+      .styled-table th {
+        background: #e2e8f0 !important;
+        color: #0f172a !important;
+      }
+
+      .styled-table td {
+        border-bottom: 1px solid #cbd5e1 !important;
+        color: #1e293b !important;
+      }
+
+      .page-break-before {
+        page-break-before: always;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">🐳</div>
+        <div>
+          <div class="brand-title">Orca + Linear</div>
+          <div class="brand-subtitle">Manual de Automação MCP</div>
+        </div>
+      </div>
+
+      <div class="nav-group-title">Navegação Rápida</div>
+      <ul class="nav-list">
+        <li class="nav-item"><a href="#visao-geral" class="active">📌 1. Visão Geral</a></li>
+        <li class="nav-item"><a href="#instalacao-login">⚡ 2. Instalação & Login</a></li>
+        <li class="nav-item"><a href="#integracao-nativa">🔗 3. Conexão Nativa</a></li>
+        <li class="nav-item"><a href="#mcp-protocol">🔌 4. Camada MCP (Protocolo)</a></li>
+        <li class="nav-item"><a href="#agente-antigravity">🤖 5. Conectar Agente (Antigravity)</a></li>
+        <li class="nav-item"><a href="#superpoderes-orca">💎 6. Superpoderes no Dia a Dia</a></li>
+        <li class="nav-item"><a href="#metodologia-linear">📐 7. Metodologia Linear (Sprints & PRD)</a></li>
+        <li class="nav-item"><a href="#troubleshooting">🛠️ 8. Troubleshooting</a></li>
+      </ul>
+
+      <div class="sidebar-actions">
+        <button class="btn btn-primary" onclick="window.print()">
+          <span>🖨️</span> Salvar em PDF / Imprimir
+        </button>
+        <a href="#mcp-protocol" class="btn btn-secondary">
+          <span>📦</span> Ver Código .mcp.json
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+
+      <!-- Hero Banner -->
+      <header class="hero-banner">
+        <div class="hero-badges">
+          <span class="badge badge-blue">Orca ADE v1.0+</span>
+          <span class="badge badge-purple">Model Context Protocol (MCP)</span>
+          <span class="badge badge-green">Linear & GitHub Native</span>
+          <span class="badge badge-blue">Antigravity AI Agent</span>
+        </div>
+        <h1 class="hero-title">Orquestração de Agentes com Orca, Linear & MCP</h1>
+        <p class="hero-desc">
+          Guia completo passo a passo: desde a instalação e login até a integração de múltiplos agentes de IA paralelos usando Git Worktrees isolados e ferramentas MCP nativas.
+        </p>
+      </header>
+
+      <!-- Section 1: Visão Geral -->
+      <section id="visao-geral" class="module-card">
+        <div class="module-header">
+          <div>
+            <div class="module-tag">Módulo 01</div>
+            <h2 class="module-title">Visão Geral da Arquitetura</h2>
+          </div>
+        </div>
+
+        <p style="color: var(--text-muted); margin-bottom: 20px;">
+          Em um fluxo de engenharia de alta performance, o desenvolvedor não deve perder tempo alternando manualmente entre Jira/Linear, navegadores, terminais e branches do Git. O <strong>Orca</strong> atua como a central de comando unificada.
+        </p>
+
+        <div class="arch-grid">
+          <div class="arch-card">
+            <div class="arch-card-icon">🐳</div>
+            <div class="arch-card-title">Orca (ADE)</div>
+            <div class="arch-card-desc">O ambiente de desenvolvimento de agentes. Gerencia Git Worktrees isolados, terminais WebGL, preview de tela e diffs lado a lado.</div>
+          </div>
+
+          <div class="arch-card">
+            <div class="arch-card-icon">📐</div>
+            <div class="arch-card-title">Linear</div>
+            <div class="arch-card-desc">A fonte da verdade para tarefas, requisitos, bugs e ciclos de entrega rápida com tracking ágil.</div>
+          </div>
+
+          <div class="arch-card">
+            <div class="arch-card-icon">🐙</div>
+            <div class="arch-card-title">GitHub</div>
+            <div class="arch-card-desc">Repositório de código onde branches de worktree são sincronizadas, testes rodam e Pull Requests são avaliados.</div>
+          </div>
+
+          <div class="arch-card">
+            <div class="arch-card-icon">🔌</div>
+            <div class="arch-card-title">Camada MCP</div>
+            <div class="arch-card-desc">Permite que o Agente de IA consulte tickets, comente no Linear e abra PRs no GitHub sem intervenção humana.</div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">💡 Por que essa combinação é revolucionária?</div>
+          <div class="callout-content">
+            Você seleciona um card no Linear, o Orca cria instantaneamente um <strong>Git Worktree</strong> isolado em background. O agente de IA codifica, roda os testes e abre o Pull Request no GitHub com rastreabilidade completa. Zero conflito de branches locais!
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Instalação & Login -->
+      <section id="instalacao-login" class="module-card">
+        <div class="module-header">
+          <div>
+            <div class="module-tag">Módulo 02</div>
+            <h2 class="module-title">Instalação e Login nos Serviços</h2>
+          </div>
+        </div>
+
+        <!-- Passo 1: Orca -->
+        <div class="step-box">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <div class="step-title">Instalação e Primeiro Login no Orca</div>
+            <div class="step-desc">O Orca está disponível para Windows, macOS e Linux diretamente pelo repositório open-source <code>stablyai/orca</code>.</div>
+            
+            <div class="code-container">
+              <div class="code-header">
+                <span>Comandos de Instalação por Sistema</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+              </div>
+              <pre><code># macOS (Homebrew)
+brew install --cask stablyai/orca/orca
+
+# Windows
+# Baixe o instalador executável 'Orca-Setup.exe' em:
+# https://github.com/stablyai/orca/releases
+
+# Linux (Arch AUR)
+yay -S stably-orca-bin</code></pre>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 8px;">
+              🔹 Ao abrir o aplicativo pela primeira vez, conclua o assistente de boas-vindas e faça login com sua conta (ou configure provedores de IA preferidos em Settings).
+            </p>
+          </div>
+        </div>
+
+        <!-- Passo 2: Linear -->
+        <div class="step-box">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <div class="step-title">Configurar Conta e Gerar API Key no Linear</div>
+            <div class="step-desc">Para permitir que tanto o Orca quanto o Agente de IA interajam com suas tarefas, gere um Personal API Key.</div>
+            
+            <ol style="color: var(--text-muted); font-size: 0.9rem; margin-left: 20px; margin-bottom: 12px;">
+              <li>Acesse <a href="https://linear.app" target="_blank" style="color: var(--accent-blue);">linear.app</a> e faça login no seu Workspace.</li>
+              <li>No canto superior esquerdo, clique no nome do seu Workspace &rarr; <strong>Settings</strong>.</li>
+              <li>No menu lateral sob <strong>Account</strong>, clique em <strong>Security & Access</strong>.</li>
+              <li>Role até a seção <strong>Personal API Keys</strong> e clique em <strong>New API Key</strong>.</li>
+              <li>Defina o rótulo como <code>Orca-MCP-Agent</code> e clique em <strong>Create</strong>.</li>
+              <li>Copie a chave (formato: <code>lin_api_...</code>) e guarde em um local seguro.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Passo 3: GitHub -->
+        <div class="step-box">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <div class="step-title">Gerar Personal Access Token (PAT) no GitHub</div>
+            <div class="step-desc">Necessário para leitura de repositórios, criação de branches e abertura de Pull Requests pelo MCP.</div>
+            
+            <ol style="color: var(--text-muted); font-size: 0.9rem; margin-left: 20px; margin-bottom: 12px;">
+              <li>Acesse <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--accent-blue);">GitHub &rarr; Developer Settings &rarr; Personal access tokens</a>.</li>
+              <li>Clique em <strong>Generate new token (classic)</strong>.</li>
+              <li>Dê o nome: <code>Orca-Agent-Integration</code>.</li>
+              <li>Marque os escopos essenciais:
+                <ul style="margin-left: 20px; margin-top: 4px;">
+                  <li><code>repo</code> (Acesso completo a repositórios privados e públicos)</li>
+                  <li><code>workflow</code> (Execução e verificação de GitHub Actions)</li>
+                  <li><code>read:org</code> (Listar organizações da equipe)</li>
+                </ul>
+              </li>
+              <li>Copie o token gerado (formato: <code>ghp_...</code>).</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Integração Nativa no Orca -->
+      <section id="integracao-nativa" class="module-card">
+        <div class="module-header">
+          <div>
+            <div class="module-tag">Módulo 03</div>
+            <h2 class="module-title">Conexão Nativa do Linear & GitHub no Orca</h2>
+          </div>
+        </div>
+
+        <p style="color: var(--text-muted); margin-bottom: 16px;">
+          O Orca possui telas nativas dedicadas a visualizar os tickets do Linear e PRs do GitHub diretamente no cockpit da aplicação:
+        </p>
+
+        <!-- Mockup Visual -->
+        <div class="mockup-window">
+          <div class="mockup-header">
+            <span class="mockup-dot dot-red"></span>
+            <span class="mockup-dot dot-yellow"></span>
+            <span class="mockup-dot dot-green"></span>
+            <span class="mockup-title">Orca ADE — Workspace: management-automation-tutorial</span>
+          </div>
+          <div class="mockup-body">
+            <!-- Sidebar -->
+            <div class="mockup-sidebar">
+              <div style="font-size: 0.72rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Task Sources</div>
+              <div class="mockup-sidebar-item active">
+                <span>📐 Linear (ENG)</span>
+                <span style="font-size: 0.7rem; background: #0284c7; color: #fff; padding: 1px 6px; border-radius: 4px;">5</span>
+              </div>
+              <div class="mockup-sidebar-item">
+                <span>🐙 GitHub PRs</span>
+                <span style="font-size: 0.7rem; background: #334155; color: #fff; padding: 1px 6px; border-radius: 4px;">2</span>
+              </div>
+              <div style="font-size: 0.72rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin: 16px 0 8px;">Active Worktrees</div>
+              <div style="font-size: 0.75rem; color: #94a3b8; padding: 4px 8px;">🌿 LIN-104-auth-fix</div>
+              <div style="font-size: 0.75rem; color: #94a3b8; padding: 4px 8px;">🌿 LIN-109-checkout</div>
+            </div>
+
+            <!-- Terminal -->
+            <div class="mockup-terminal">
+              <span style="color: #38bdf8;">orca@worktree-LIN-104:~$</span> agy "Resolva issue LIN-104"<br>
+              <span style="color: #a855f7;">[MCP Linear]</span> Buscando issue LIN-104... OK<br>
+              <span style="color: #10b981;">[Context]</span> "Corrigir validação de token OAuth"<br>
+              <span style="color: #f59e0b;">[Git Worktree]</span> Branch 'feature/LIN-104-auth-fix' ativa.<br>
+              <span style="color: #e2e8f0;">[Agente Antigravity] Editando auth_service.ts... Testes aprovados.</span><br>
+              <span style="color: #38bdf8;">[MCP GitHub]</span> Pull Request #32 criado com sucesso!
+            </div>
+
+            <!-- Preview -->
+            <div class="mockup-preview">
+              <div style="font-size: 0.75rem; font-weight: 700; color: #fff;">Diff Review & Preview</div>
+              <div style="background: #1e293b; border-radius: 6px; padding: 8px; font-size: 0.72rem; font-family: var(--font-mono);">
+                <span style="color: #ef4444;">- return token.isValid()</span><br>
+                <span style="color: #10b981;">+ return await verifyJWT(token)</span>
+              </div>
+              <button class="btn btn-primary" style="padding: 6px 10px; font-size: 0.75rem; margin-top: auto;">Aprovar & Merge</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-number">⚙️</div>
+          <div class="step-content">
+            <div class="step-title">Configurando passo a passo no Orca</div>
+            <ol style="color: var(--text-muted); font-size: 0.9rem; margin-left: 20px; line-height: 1.8;">
+              <li>Abra o Orca e clique no ícone de engrenagem <strong>Settings</strong> (canto inferior esquerdo).</li>
+              <li>Acesse <strong>Task Sources</strong> &rarr; Marque <strong>Linear</strong> e <strong>GitHub</strong> como <strong>ON</strong>.</li>
+              <li>Acesse <strong>Integrations</strong>:
+                <ul style="margin-left: 20px;">
+                  <li><strong>Linear:</strong> Clique em Conectar via OAuth ou cole sua <code>Personal API Key</code> gerada.</li>
+                  <li><strong>GitHub:</strong> Conecte sua conta do GitHub via OAuth ou insira o Personal Access Token.</li>
+                </ul>
+              </li>
+              <li>Volte à tela inicial: os cards de tarefas aparecerão organizados em colunas (Todo, In Progress, Done).</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Camada MCP -->
+      <section id="mcp-protocol" class="module-card">
+        <div class="module-header">
+          <div>
+            <div class="module-tag">Módulo 04</div>
+            <h2 class="module-title">Configuração do MCP (Model Context Protocol)</h2>
+          </div>
+        </div>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠️ Entenda a Diferença Essencial:</div>
+          <div class="callout-content">
+            A integração visual das configurações do Orca é para <strong>você (humano)</strong> clicar e ver cards. <br>
+            A <strong>camada MCP</strong> é o protocolo que dá <strong>ferramentas ao Agente de IA</strong> para ele poder ler tarefas, pesquisar no Linear e abrir PRs no GitHub de forma 100% autônoma!
+          </div>
+        </div>
+
+        <h3 style="font-size: 1.15rem; color: #fff; margin: 20px 0 10px;">Arquivo de Configuração: <code>.mcp.json</code></h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 14px;">
+          Crie um arquivo chamado <code>.mcp.json</code> na raiz do seu repositório de trabalho (ou configure via <em>Settings &rarr; Repository &rarr; MCP Configs</em> no Orca):
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>.mcp.json (Configuração Pronta para Uso)</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar JSON</button>
+          </div>
+          <pre><code>{
+  "mcpServers": {
+    "linear": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-linear"
+      ],
+      "env": {
+        "LINEAR_API_KEY": "lin_api_COLE_SEU_TOKEN_DO_LINEAR_AQUI"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_COLE_SEU_TOKEN_DO_GITHUB_AQUI"
+      }
+    }
+  }
+}</code></pre>
+        </div>
+
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>Ferramenta MCP</th>
+              <th>Origem</th>
+              <th>O que a IA Consegue Fazer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>linear_search_issues</code></td>
+              <td>Linear MCP</td>
+              <td>Busca issues por texto, status, tags ou projeto</td>
+            </tr>
+            <tr>
+              <td><code>linear_get_issue</code></td>
+              <td>Linear MCP</td>
+              <td>Lê detalhes, descrição completa e comentários do ticket</td>
+            </tr>
+            <tr>
+              <td><code>linear_update_issue</code></td>
+              <td>Linear MCP</td>
+              <td>Muda status para "In Progress", "In Review" ou "Done"</td>
+            </tr>
+            <tr>
+              <td><code>create_pull_request</code></td>
+              <td>GitHub MCP</td>
+              <td>Abre PR com título, descrição gerada e link para a issue</td>
+            </tr>
+            <tr>
+              <td><code>search_code</code></td>
+              <td>GitHub MCP</td>
+              <td>Procura funções, arquivos e dependências no repositório</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Section 5: Agente Antigravity -->
+      <section id="agente-antigravity" class="module-card">
+        <div class="module-header">
+          <div>
+            <div class="module-tag">Módulo 05</div>
+            <h2 class="module-title">Conectando o Agente Antigravity no Orca</h2>
+          </div>
+        </div>
+
+        <p style="color: var(--text-muted); margin-bottom: 16px;">
+          O agente <strong>Antigravity (`agy`)</strong> é executado diretamente nos terminais integrados do Orca, herdando as ferramentas MCP configuradas e o isolamento total da Worktree.
+        </p>
+
+        <div class="step-box">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <div class="step-title">Criar a Worktree pelo Orca</div>
+            <div class="step-desc">
+              No Orca, clique com o botão direito na issue desejada do Linear (ex: <code>LIN-204</code>) e selecione: <br>
+              <strong>"Create Worktree from Task"</strong>.
+            </div>
+            <p style="font-size: 0.85rem; color: var(--accent-blue);">
+              ⚡ O Orca cria instantaneamente a pasta <code>.worktrees/LIN-204</code> e abre o terminal exatamente nessa pasta!
+            </p>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <div class="step-title">Disparar o Agente Antigravity</div>
+            <div class="step-desc">No terminal que acabou de abrir no Orca, execute:</div>
+            <div class="code-container">
+              <div class="code-header">
+                <span>Terminal Orca (PowerShell / Bash)</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+              </div>
+              <pre><code># Execução direta com prompt estruturado
+agy "Consulte a issue LIN-204 no Linear via MCP. Implemente a correção solicitada, valide os testes e abra o PR no GitHub."</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-success">
+          <div class="callout-title">🎉 O que acontece nos bastidores:</div>
+          <div class="callout-content">
+            1. O Antigravity consulta a issue no Linear via MCP e extrai os requisitos.<br>
+            2. Codifica a solução nos arquivos da Worktree isolada.<br>
+            3. Roda o linter e os testes locais.<br>
+            4. Realiza commit e push para o GitHub.<br>
+            5. Cria o Pull Request com link direto para o Linear.<br>
+            6. O Orca notifica você que a tarefa está pronta para revisão visual!
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: Superpoderes do Orca -->
+      <section id="superpoderes-orca" class="module-card">
+        <div class="module-header">
+          <div>
+            <div class="module-tag">Módulo 06</div>
+            <h2 class="module-title">Superpoderes do Orca no Dia a Dia</h2>
+          </div>
+        </div>
+
+        <p style="color: var(--text-muted); margin-bottom: 24px;">
+          Recursos essenciais que você e sua equipe devem dominar para extrair 10x mais produtividade:
+        </p>
+
+        <div class="arch-grid">
+          <div class="arch-card">
+            <div class="arch-card-icon">🌿</div>
+            <div class="arch-card-title">Git Worktrees Paralelos</div>
+            <div class="arch-card-desc">Execute 3 ou 5 agentes de IA em tarefas diferentes simultaneamente. Cada um trabalha em sua pasta sem sobrepor nem criar conflito com seus arquivos locais.</div>
+          </div>
+
+          <div class="arch-card">
+            <div class="arch-card-icon">⚡</div>
+            <div class="arch-card-title">Terminais WebGL Persistentes</div>
+            <div class="arch-card-desc">Terminais ultra-rápidos com scroll infinito. Se você fechar a janela ou reiniciar o PC, os processos continuam exatamente de onde pararam.</div>
+          </div>
+
+          <div class="arch-card">
+            <div class="arch-card-icon">🎯</div>
+            <div class="arch-card-title">Design Mode (Inspetor Visual)</div>
+            <div class="arch-card-desc">Clique em qualquer botão ou elemento da aplicação no navegador embutido do Orca. Ele copia HTML, CSS e screenshot direto para o prompt da IA.</div>
+          </div>
+
+          <div class="arch-card">
+            <div class="arch-card-icon">📝</div>
+            <div class="arch-card-title">Anotação de Diffs de IA</div>
+            <div class="arch-card-desc">Revise o código gerado linha por linha antes do commit. Adicione comentários no diff e clique em "Reenviar ao Agente" para refinamento instantâneo.</div>
+          </div>
+        </div>
+      </section>
+
+            <!-- Section 7: Metodologia Ágil com Linear -->
+      <section id="metodologia-linear" class="module-card">
+        <div class="module-header">
+          <div>
+            <div class="module-tag">Módulo 07</div>
+            <h2 class="module-title">Metodologia Ágil no Linear: Uso Prático, Regras, PRD & Sprints</h2>
+          </div>
+        </div>
+
+        <p style="color: var(--text-muted); margin-bottom: 20px;">
+          Para que a automação com agentes de IA (como o Antigravity) e o Orca funcione com máxima precisão, o <strong>Linear não pode ser usado como um bloco de notas desorganizado</strong>. Ele é o <strong>cérebro de dados estruturados</strong> que orienta desenvolvedores e agentes.
+        </p>
+
+        <!-- 1. Uso Prático no Dia a Dia -->
+        <h3 style="font-size: 1.2rem; color: #fff; margin: 24px 0 12px; display: flex; align-items: center; gap: 8px;">
+          <span>🎯</span> 1. Uso Prático no Dia a Dia da Equipe
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 14px;">
+          O Linear adota a cultura <em>keyboard-first</em> (ultra-rápido, sem burocracia de ferramentas pesadas como Jira). Nenhum código é alterado sem uma issue aberta. O ciclo de vida do card é sincronizado nativamente com o Orca e o GitHub:
+        </p>
+
+        <div class="styled-table" style="margin-bottom: 24px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="padding: 12px 16px; background: #162238; color: #fff;">Estado no Linear</th>
+                <th style="padding: 12px 16px; background: #162238; color: #fff;">Gatilho no Orca / Git</th>
+                <th style="padding: 12px 16px; background: #162238; color: #fff;">Responsável / Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 700; color: #94a3b8;">Backlog / Triage</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted);">Ideias, débitos e bugs reportados</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted);">PM e Tech Lead priorizam e validam o DoR</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 700; color: #38bdf8;">Todo / Ready</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted);">Planejada no ciclo (Sprint) atual</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted);">Pronta para ser puxada por humano ou IA</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 700; color: #f59e0b;">In Progress</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted);">Orca cria o <strong>Git Worktree</strong> isolado</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted);">Agente Antigravity lê a issue via MCP e codifica</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 700; color: #a855f7;">In Review</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted);">Pull Request aberto no GitHub</td>
+                <td style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); color: var(--text-muted);">Agente atualiza o ticket via MCP e time faz Code Review</td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 16px; font-weight: 700; color: #10b981;">Done</td>
+                <td style="padding: 12px 16px; color: var(--text-muted);">PR mergeado na branch <code>main</code></td>
+                <td style="padding: 12px 16px; color: var(--text-muted);">Fechamento automático pelo webhook do GitHub</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2. Regras Mandatórias ao Subir Tarefas -->
+        <h3 style="font-size: 1.2rem; color: #fff; margin: 28px 0 12px; display: flex; align-items: center; gap: 8px;">
+          <span>📋</span> 2. Regras Mandatórias ao Subir Tarefas (Definition of Ready)
+        </h3>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠️ Regra de Ouro para Agentes de IA:</div>
+          <div class="callout-content">
+            Se uma tarefa for ambígua para uma pessoa, o Agente de IA irá <strong>alucinar ou construir a coisa errada com altíssima velocidade</strong>. A assertividade do código gerado pela IA é diretamente proporcional à qualidade do ticket no Linear!
+          </div>
+        </div>
+
+        <div class="arch-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
+          <div class="arch-card" style="border-left: 4px solid #ef4444;">
+            <div class="arch-card-title" style="color: #ef4444;">❌ Títulos Proibidos (Vagos)</div>
+            <ul style="color: var(--text-muted); font-size: 0.85rem; margin-left: 18px; line-height: 1.8;">
+              <li><code>Bug no login</code></li>
+              <li><code>Arrumar front-end</code></li>
+              <li><code>Melhorar performance do banco</code></li>
+              <li><code>Ajustes no checkout</code></li>
+            </ul>
+          </div>
+          <div class="arch-card" style="border-left: 4px solid #10b981;">
+            <div class="arch-card-title" style="color: #34d399;">✅ Títulos Corretos (Taxonomia Padrão)</div>
+            <ul style="color: var(--text-muted); font-size: 0.85rem; margin-left: 18px; line-height: 1.8;">
+              <li><code>[Auth/JWT] Implementar renovação via refresh token em /auth/refresh</code></li>
+              <li><code>[Checkout] Corrigir cálculo de frete para pacotes acima de 2kg</code></li>
+              <li><code>[DB/Migration] Criar índice na coluna user_id em audit_logs</code></li>
+              <li><code>[UI/Cart] Desabilitar botão de compra quando estoque for zero</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <h4 style="font-size: 1rem; color: #fff; margin: 16px 0 8px;">Template Obrigatório de Descrição da Issue:</h4>
+        <div class="code-container">
+          <div class="code-header">
+            <span>Template de Issue (Copie e cole no Linear)</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copiar Template</button>
+          </div>
+          <pre><code>### 1. Contexto & Problema
+Qual o comportamento atual e por que precisa ser alterado.
+
+### 2. Escopo Técnico & Arquitetura
+- O que DEVE ser alterado (endpoints, tabelas, componentes).
+- O que NÃO deve ser alterado (fronteiras de escopo para evitar refatorações indesejadas pelo agente).
+
+### 3. Critérios de Aceitação (Definition of Done)
+- [ ] O endpoint responde 200 com novo token em payload válido.
+- [ ] Retorna 401 caso o token esteja revogado ou expirado.
+- [ ] Testes unitários cobrem cenários de sucesso e falha.
+
+### 4. Anexos & Referências
+- Link do PRD ou documento de arquitetura no Linear Documents.
+- Link do Figma / Prints / Logs de erro para reprodução.</code></pre>
+        </div>
+
+        <!-- 3. A Importância do PRD -->
+        <h3 style="font-size: 1.2rem; color: #fff; margin: 32px 0 12px; display: flex; align-items: center; gap: 8px;">
+          <span>📖</span> 3. A Importância Central do PRD (Product Requirements Document)
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 14px;">
+          O PRD moderno não é um documento burocrático de 50 páginas: é o <strong>mapa de contexto estratégico e arquitetural</strong>. Na era da IA, ele cumpre um papel crítico:
+        </p>
+
+        <div class="arch-grid">
+          <div class="arch-card">
+            <div class="arch-card-icon">🧠</div>
+            <div class="arch-card-title">Âncora de Contexto Macro</div>
+            <div class="arch-card-desc">Uma issue isolada diz <em>"o que fazer"</em>, mas o PRD explica <em>"por que e como se conecta ao restante do sistema"</em>. Impede decisões arquiteturais isoladas que quebram o app.</div>
+          </div>
+          <div class="arch-card">
+            <div class="arch-card-icon">🔌</div>
+            <div class="arch-card-title">Consumível via MCP</div>
+            <div class="arch-card-desc">O PRD vive dentro do <strong>Linear Documents</strong> vinculado ao Projeto. O agente Antigravity consulta o projeto via MCP e obtém as diretrizes antes de codificar.</div>
+          </div>
+          <div class="arch-card">
+            <div class="arch-card-icon">🛡️</div>
+            <div class="arch-card-title">Delimitação In/Out Scope</div>
+            <div class="arch-card-desc">Define explicitamente o que NÃO faz parte desta entrega, impedindo que o modelo de IA tente reescrever arquivos alheios ou inventar funcionalidades.</div>
+          </div>
+        </div>
+
+        <!-- 4. Métodos de Criação de Sprints (Cycles) -->
+        <h3 style="font-size: 1.2rem; color: #fff; margin: 32px 0 12px; display: flex; align-items: center; gap: 8px;">
+          <span>⚡</span> 4. Métodos de Gestão de Sprints no Linear (Cycles)
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 14px;">
+          O Linear abandona a rigidez de sprints pesadas e introduz os <strong>Cycles</strong>: cadência contínua com foco em velocidade, previsibilidade e automação:
+        </p>
+
+        <div class="step-box">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <div class="step-title">Configuração do Ciclo (Cadência de 2 Semanas)</div>
+            <div class="step-desc">
+              Vá em <strong>Team Settings &rarr; Cycles</strong> no Linear. Ative ciclos de <strong>2 semanas</strong> com início às segundas-feiras. Ative o <code>Auto-rollover</code> (tarefas não finalizadas passam para o próximo ciclo com alerta) e <code>Auto-archive</code> para tarefas concluídas.
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <div class="step-title">Fatiamento Atômico de Issues (Grooming)</div>
+            <div class="step-desc">
+              Durante o refinamento, o Tech Lead fatiará o PRD em <strong>Issues Atômicas</strong>. <br>
+              <strong>Regra de Ouro:</strong> Nenhuma issue deve demandar mais de 1 ou 2 dias de trabalho. Se a estimativa for &ge; 8 pontos, a tarefa DEVE ser dividida em sub-issues menores.
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <div class="step-title">Planning com Velocity e Escopo Congelado</div>
+            <div class="step-desc">
+              O Linear calcula automaticamente a capacidade histórica do time (<em>Historical Velocity</em>). Na reunião de Planning, selecione do Backlog apenas o montante que cabe na capacidade. <br>
+              <strong>Regra do Escopo Congelado:</strong> Não se adicionam novos cards no meio do ciclo sem retirar outro de mesmo peso (exceto bugs críticos P1/Urgent).
+            </div>
+          </div>
+        </div>
+
+        <div class="step-box">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <div class="step-title">Acompanhamento com Burndown Chart e Scope Graph</div>
+            <div class="step-desc">
+              Acompanhe diariamente pelo painel nativo do Cycle:
+              <ul style="margin-left: 18px; margin-top: 6px;">
+                <li><strong>Burndown Chart:</strong> Mostra se o ritmo de queima de pontos está alinhado com a data final.</li>
+                <li><strong>Scope Graph:</strong> Alerta visualmente se o escopo aumentou no meio da sprint (<em>Scope Creep</em>).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Section 8: Troubleshooting -->
+      <section id="troubleshooting" class="module-card">
+        <div class="module-header">
+          <div>
+            <div class="module-tag">Módulo 08</div>
+            <h2 class="module-title">Solução de Problemas (Troubleshooting)</h2>
+          </div>
+        </div>
+
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>Sintoma</th>
+              <th>Causa Provável</th>
+              <th>Solução Rápida</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Servidor MCP com status vermelho / disconnected</td>
+              <td>Node.js/npx ausente ou token inválido</td>
+              <td>Rode <code>node -v</code> no terminal. Verifique se o token no <code>.mcp.json</code> não contém espaços ou aspas extras.</td>
+            </tr>
+            <tr>
+              <td>"Resource not found" ao listar issues</td>
+              <td>Token sem permissão no workspace do Linear</td>
+              <td>Gere novamente o token dentro do Workspace correto em <em>Settings &rarr; Security & Access</em>.</td>
+            </tr>
+            <tr>
+              <td>Orca não reconhece o arquivo <code>.mcp.json</code></td>
+              <td>Arquivo fora da raiz do projeto</td>
+              <td>Certifique-se de que <code>.mcp.json</code> está na mesma pasta raiz que você abriu no Orca.</td>
+            </tr>
+            <tr>
+              <td>Porta já em uso no preview local (ex: :3000)</td>
+              <td>Múltiplos worktrees rodando simultaneamente</td>
+              <td>Execute o dev server do segundo worktree em outra porta: <code>npm run dev -- --port 3001</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Footer -->
+      <footer style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 20px 0; border-top: 1px solid var(--border-color); margin-top: 40px;">
+        <p>Tutorial desenvolvido para automação ágil com Orca, Linear, GitHub e Antigravity via MCP.</p>
+        <p style="margin-top: 4px;">Pressione <kbd style="background: #1e293b; padding: 2px 6px; border-radius: 4px; border: 1px solid #334155;">Ctrl + P</kbd> a qualquer momento para imprimir ou salvar em PDF.</p>
+      </footer>
+
+    </main>
+  </div>
+
+  <script>
+    function copyCode(btn) {
+      const container = btn.closest('.code-container');
+      const code = container.querySelector('pre code').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = 'Copiado!';
+        btn.style.background = '#10b981';
+        btn.style.color = '#fff';
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 2000);
+      });
+    }
+
+    // Highlight active link in sidebar on scroll
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section');
+      const scrollY = window.pageYOffset;
+
+      sections.forEach(current => {
+        const sectionHeight = current.offsetHeight;
+        const sectionTop = current.offsetTop - 100;
+        const sectionId = current.getAttribute('id');
+        const link = document.querySelector(`.sidebar a[href*=${sectionId}]`);
+
+        if (link && scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+          document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
