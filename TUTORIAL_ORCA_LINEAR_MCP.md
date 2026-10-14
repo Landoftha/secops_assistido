@@ -216,28 +216,168 @@ No seu repositório de projeto (ou na raiz onde o Orca gerencia suas workspaces)
 
 ---
 
-## 5. Conectando com o Agente de IA (Antigravity & Outros)
+## 5. Configuração Universal de IA Generativa & Agentes no Orca
 
-O Orca suporta múltiplos agentes CLI (Google Antigravity, Claude Code, OpenAI Codex, OpenCode, Cursor CLI).
+O Orca foi arquitetado para ser **completamente agnóstico a modelos e agentes**. O **Google Antigravity (`agy`)** é apenas um exemplo de motor; o mesmo processo de orquestração funciona para qualquer agente de codificação moderno, seja baseado em linha de comando (CLI) ou conectado diretamente via API de provedores.
 
-### Como o Antigravity interage no Orca:
-1. No Orca, ao clicar com o botão direito em uma issue do Linear (ou clicar em **Create Worktree from Task**):
-   - O Orca cria automaticamente um **Git Worktree** isolado em uma nova pasta vinculada à issue (ex: `feature/LIN-104-fix-auth`).
-   - O Orca abre uma janela de terminal WebGL dentro dessa pasta isolada.
-2. No terminal do Orca, o agente **Antigravity** (`agy`) é iniciado:
-   ```bash
-   agy
+---
+
+### 5.1 O Ecossistema de Agentes Compatíveis
+
+Você pode configurar o Orca para disparar qualquer uma das seguintes opções dentro dos Git Worktrees:
+
+| Agente / Motor | Tipo | Como Instalar no Sistema | Comando no Terminal do Orca |
+|---|---|---|---|
+| **Google Antigravity** | CLI Autônomo | Binário via `agy install` ou script | `agy` ou `agy "sua instrução"` |
+| **Claude Code (Anthropic)** | CLI Autônomo | `npm install -g @anthropic-ai/claude-code` | `claude` |
+| **Cursor CLI** | CLI / Headless | Integrado ao Cursor (`cursor-agent`) | `cursor-agent` |
+| **Aider** | CLI Pair Programming | `pip install aider-chat` ou `uv tool install aider-chat` | `aider` |
+| **OpenCode / Codex** | CLI Open Source | `npm install -g opencode-ai` | `opencode` |
+| **Modelos Locais (Ollama/vLLM)** | Endpoint Local | `ollama run qwen2.5-coder` ou `vLLM` | `aider --model ollama/qwen2.5-coder` |
+
+---
+
+### 5.2 Como o Orca Executa e Configura os Agentes
+
+O Orca gerencia a IA através de duas camadas complementares:
+
+#### Camada 1: Configuração do Agente Runner (Settings ➔ Agents & Providers)
+1. No Orca, acesse **Settings (engrenagem)** ➔ **Agents & Runners**.
+2. **Command / Executable:** Defina o comando base ou o executável do seu agente (ex: `claude`, `agy`, `aider`).
+3. **Default Arguments:** Argumentos padrão de inicialização (ex: `--dangerously-skip-permissions` para Claude Code, ou flags de modelo).
+4. **Environment Variables:** Injeta chaves de API globais diretamente no ambiente de execução do terminal:
+   - `ANTHROPIC_API_KEY`: para Claude Code / modelos Claude.
+   - `OPENAI_API_KEY`: para GPT-4o / Codex / Aider.
+   - `GEMINI_API_KEY`: para Antigravity / Gemini 2.5 / 3.0.
+
+#### Camada 2: Execução no Git Worktree da Tarefa
+Ao clicar com o botão direito em uma issue do Linear e selecionar **"Create Worktree from Task"**:
+1. O Orca clona a branch para uma pasta isolada (ex: `.worktrees/LIN-104`).
+2. Abre uma instância do terminal WebGL já posicionada dentro dessa pasta.
+3. Carrega automaticamente o arquivo `.mcp.json` do projeto, disponibilizando as ferramentas do Linear e GitHub para qualquer agente que você rodar.
+
+---
+
+### 5.3 Diagnóstico Aprofundado: Erros Mais Comuns e Como Resolver
+
+Na prática, a maior parte dos problemas ao integrar IA no Orca não vem da inteligência do modelo, mas de **inconsistências de ambiente do sistema operacional**. Abaixo estão os erros mais frequentes e suas soluções:
+
+---
+
+#### 🔴 Erro 1: "Command not found" / "Não foi possível encontrar a instalação" / "O termo não é reconhecido"
+
+##### Por que acontece?
+Aplicativos desktop com interface gráfica (como o Orca, VS Code ou Slack) são iniciados pelo gerenciador de janelas do sistema operacional (Explorer no Windows, Finder no macOS). Por padrão, eles **NÃO herdam o perfil completo do seu terminal interativo** (`.bashrc`, `.zshrc`, ou atualizações recentes de variáveis de ambiente do PowerShell feitas sem reiniciar o computador). 
+
+Se você acabou de instalar o agente via `npm install -g` ou `pip install`, o binário reside em pastas como `AppData\Roaming\npm` ou `~/.local/bin`, mas o terminal do Orca tenta invocar o nome simples e não o encontra no seu `PATH` reduzido.
+
+##### Como Diagnosticar:
+Abra o terminal integrado do Orca e execute o comando de localização de binário:
+- **No Windows:**
+  ```powershell
+  where claude
+  where agy
+  where aider
+  ```
+- **No macOS / Linux:**
+  ```bash
+  which claude
+  which agy
+  which aider
+  ```
+Se o comando retornar vazio ou *"Não foi possível encontrar o arquivo"*, o binário está fora do `PATH` visível pelo Orca.
+
+##### Como Resolver (3 Soluções Práticas):
+
+* **Solução A (Mais Confiável): Configurar o Caminho Absoluto no Orca**  
+  Em vez de colocar apenas `claude` ou `agy` nas configurações do Orca, use o caminho físico completo do arquivo executável:
+  - **Windows (npm global):**  
+    `C:\Users\SEU_USUARIO\AppData\Roaming\npm\claude.cmd`
+  - **Windows (Python/pip global):**  
+    `C:\Users\SEU_USUARIO\AppData\Local\Programs\Python\Python313\Scripts\aider.exe`
+  - **Windows (Antigravity CLI):**  
+    `C:\Users\SEU_USUARIO\.gemini\antigravity-cli\bin\agentapi.bat`
+  - **macOS / Linux:**  
+    `/usr/local/bin/claude` ou `/Users/SEU_USUARIO/.nvm/versions/node/v20.x/bin/claude`
+
+* **Solução B: Injetar o PATH nas Configurações do Orca**  
+  Vá em **Settings ➔ Environment** dentro do Orca e adicione a pasta de binários global:
+  - Windows: Adicione `;C:\Users\SEU_USUARIO\AppData\Roaming\npm` ao final da variável `PATH`.
+  - macOS/Linux: Adicione `:/usr/local/bin:~/.nvm/versions/node/v20.0.0/bin` ao `PATH`.
+
+* **Solução C: Reiniciar o Orca após instalações globais**  
+  Se você instalou uma ferramenta no terminal externo enquanto o Orca estava aberto, feche totalmente o Orca (inclusive na bandeja do sistema) e reabra-o para recarregar as variáveis de ambiente.
+
+---
+
+#### 🔴 Erro 2: "Script desabilitado / Execution Policy" (Exclusivo do Windows)
+
+##### Sintoma:
+Ao tentar rodar um agente instalado via npm (ex: `claude` ou `opencode`), o terminal do Orca exibe:
+```
+claude.ps1 não pode ser carregado porque a execução de scripts foi desabilitada neste sistema.
++ CategoryInfo : SecurityError: (:) [], PSSecurityException
+```
+
+##### Como Resolver:
+Abra o PowerShell no seu computador como **Administrador** e execute:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+Isso autoriza a execução de scripts e wrappers de linha de comando legítimos instalados na sua conta de usuário.
+
+---
+
+#### 🔴 Erro 3: "API Key Missing" / Chave de API não detectada pelo Agente
+
+##### Sintoma:
+O agente abre no terminal, mas fecha imediatamente exibindo:
+`Error: No API key found. Please set ANTHROPIC_API_KEY / OPENAI_API_KEY`.
+
+##### Como Resolver:
+1. **Configuração Global no Orca:** Em **Settings ➔ Agents & Providers**, preencha o campo respectivo à chave da IA.
+2. **Configuração via Arquivo `.env`:** No repositório ou no worktree, crie um arquivo `.env` (certifique-se de que está listado no `.gitignore`):
+   ```env
+   ANTHROPIC_API_KEY=sk-ant-api03-...
+   OPENAI_API_KEY=sk-proj-...
+   GEMINI_API_KEY=AIzaSy...
    ```
-   Ou disparando o comando com prompt direto:
+3. **Teste no Terminal do Orca:** Antes de rodar o agente, verifique se a variável está carregada:
+   - Windows PowerShell: `$env:ANTHROPIC_API_KEY`
+   - macOS / Linux: `echo $ANTHROPIC_API_KEY`
+
+---
+
+#### 🔴 Erro 4: Agente Congelado Aguardando Confirmação Interativa
+
+##### Sintoma:
+Ao mandar o agente resolver uma tarefa do Linear, o processo parece congelar sem responder.
+
+##### Causa:
+Agentes de IA costumam solicitar aprovação manual humana antes de rodar comandos no sistema (ex: `Allow bash command 'git checkout -b'? [y/n]`).
+
+##### Como Resolver:
+Ao configurar o comando padrão do agente no Orca, adicione a flag de execução autônoma segura:
+- **Claude Code:** `claude --dangerously-skip-permissions` (ou configurar permissões automáticas no arquivo `~/.claude.json`).
+- **Aider:** `aider --yes --auto-commits`
+- **Antigravity (`agy`):** `agy --auto-approve` ou execução com o prompt parametrizado.
+
+---
+
+#### 🔴 Erro 5: Incompatibilidade de Versão do Node.js ou Python
+
+##### Sintoma:
+Erros como `SyntaxError: Unexpected token '?'` ou `Requires Node >= 18.0.0`.
+
+##### Como Resolver:
+1. No terminal do Orca, confira a versão do runtime:
    ```bash
-   agy "Resolva a issue LIN-104 consultando o Linear via MCP. Rode os testes e gere o PR no GitHub."
+   node -v
+   python --version
    ```
-3. O agente utiliza os servidores MCP configurados:
-   - Consulta a issue: `linear_get_issue(id: "LIN-104")`.
-   - Lê os critérios de aceitação e comentários.
-   - Navega pelo código e implementa as alterações.
-   - Cria o Pull Request com: `github_create_pull_request(...)`.
-   - Adiciona um comentário na issue do Linear com o link do PR e atualiza o estado para `In Review`.
+2. Caso esteja usando versões legadas, utilize gerenciadores de versão como `nvm` (para Node) ou `uv` / `pyenv` (para Python) para definir a versão estável mais recente como padrão global do sistema.
+
+---
 
 ---
 

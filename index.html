@@ -1029,7 +1029,7 @@
         <li class="nav-item"><a href="#instalacao-login">⚡ 2. Instalação & Login</a></li>
         <li class="nav-item"><a href="#integracao-nativa">🔗 3. Conexão Nativa</a></li>
         <li class="nav-item"><a href="#mcp-protocol">🔌 4. Camada MCP (Protocolo)</a></li>
-        <li class="nav-item"><a href="#agente-antigravity">🤖 5. Conectar Agente (Antigravity)</a></li>
+        <li class="nav-item"><a href="#agente-antigravity">🤖 5. Configurar IA & Agentes (Universal)</a></li>
         <li class="nav-item"><a href="#superpoderes-orca">💎 6. Superpoderes no Dia a Dia</a></li>
         <li class="nav-item"><a href="#metodologia-linear">📐 7. Metodologia Linear (Sprints & PRD)</a></li>
         <li class="nav-item"><a href="#troubleshooting">🛠️ 8. Troubleshooting</a></li>
@@ -1362,60 +1362,201 @@ yay -S stably-orca-bin</code></pre>
 </div>
       </section>
 
-      <!-- Section 5: Agente Antigravity -->
+            <!-- Section 5: Configuração Universal de Agentes de IA -->
       <section id="agente-antigravity" class="module-card">
         <div class="module-header">
           <div>
             <div class="module-tag">Módulo 05</div>
-            <h2 class="module-title">Conectando o Agente Antigravity no Orca</h2>
+            <h2 class="module-title">Configuração Universal de IA Generativa & Agentes no Orca</h2>
           </div>
         </div>
 
-        <p style="color: var(--text-muted); margin-bottom: 16px;">
-          O agente <strong>Antigravity (`agy`)</strong> é executado diretamente nos terminais integrados do Orca, herdando as ferramentas MCP configuradas e o isolamento total da Worktree.
+        <p style="color: var(--text-muted); margin-bottom: 20px;">
+          O Orca foi construído para ser <strong>completamente agnóstico a modelos e agentes de IA</strong>. O <strong>Google Antigravity (`agy`)</strong> é apenas um exemplo de motor; o mesmo fluxo funciona para qualquer ferramenta moderna de codificação autônoma (Claude Code, Cursor CLI, Aider, OpenCode ou modelos locais).
         </p>
+
+        <!-- 1. Ecossistema de Agentes -->
+        <h3 style="font-size: 1.2rem; color: #fff; margin: 24px 0 12px; display: flex; align-items: center; gap: 8px;">
+          <span>🤖</span> 1. Ecossistema de Agentes Compatíveis
+        </h3>
+        
+        <div class="table-responsive">
+          <table class="styled-table">
+            <thead>
+              <tr>
+                <th>Agente / Motor</th>
+                <th>Tipo</th>
+                <th>Como Instalar no Sistema</th>
+                <th>Comando no Orca</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Google Antigravity</strong></td>
+                <td>CLI Autônomo</td>
+                <td>Binário oficial ou script de setup</td>
+                <td><code>agy</code> ou <code>agy "instrução"</code></td>
+              </tr>
+              <tr>
+                <td><strong>Claude Code (Anthropic)</strong></td>
+                <td>CLI Autônomo</td>
+                <td><code>npm install -g @anthropic-ai/claude-code</code></td>
+                <td><code>claude</code></td>
+              </tr>
+              <tr>
+                <td><strong>Cursor CLI</strong></td>
+                <td>Headless / IDE</td>
+                <td>Integrado ao Cursor IDE</td>
+                <td><code>cursor-agent</code></td>
+              </tr>
+              <tr>
+                <td><strong>Aider</strong></td>
+                <td>Pair Programming</td>
+                <td><code>pip install aider-chat</code> ou <code>uv tool install aider-chat</code></td>
+                <td><code>aider</code></td>
+              </tr>
+              <tr>
+                <td><strong>OpenCode / Codex</strong></td>
+                <td>Open Source CLI</td>
+                <td><code>npm install -g opencode-ai</code></td>
+                <td><code>opencode</code></td>
+              </tr>
+              <tr>
+                <td><strong>Modelos Locais (Ollama)</strong></td>
+                <td>Endpoint Local</td>
+                <td><code>ollama run qwen2.5-coder</code></td>
+                <td><code>aider --model ollama/...</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2. Como Configurar no Orca -->
+        <h3 style="font-size: 1.2rem; color: #fff; margin: 28px 0 12px; display: flex; align-items: center; gap: 8px;">
+          <span>⚙️</span> 2. Passo a Passo de Configuração no Orca
+        </h3>
 
         <div class="step-box">
           <div class="step-number">1</div>
           <div class="step-content">
-            <div class="step-title">Criar a Worktree pelo Orca</div>
+            <div class="step-title">Configurar o Executável (Settings ➔ Agents & Runners)</div>
             <div class="step-desc">
-              No Orca, clique com o botão direito na issue desejada do Linear (ex: <code>LIN-204</code>) e selecione: <br>
-              <strong>"Create Worktree from Task"</strong>.
+              No Orca, vá em <strong>Settings (engrenagem)</strong> ➔ <strong>Agents & Runners</strong>:
+              <ul style="margin-left: 20px; margin-top: 6px; color: var(--text-muted); font-size: 0.88rem; line-height: 1.7;">
+                <li><strong>Command / Executable:</strong> O nome do executável (ex: <code>claude</code>, <code>agy</code>) ou seu <em>Caminho Absoluto</em>.</li>
+                <li><strong>Default Arguments:</strong> Parâmetros padrão (ex: <code>--dangerously-skip-permissions</code> ou <code>--yes</code>).</li>
+                <li><strong>Environment Variables:</strong> Adicione chaves globais (<code>ANTHROPIC_API_KEY</code>, <code>OPENAI_API_KEY</code>, <code>GEMINI_API_KEY</code>).</li>
+              </ul>
             </div>
-            <p style="font-size: 0.85rem; color: var(--accent-blue);">
-              ⚡ O Orca cria instantaneamente a pasta <code>.worktrees/LIN-204</code> e abre o terminal exatamente nessa pasta!
-            </p>
           </div>
         </div>
 
         <div class="step-box">
           <div class="step-number">2</div>
           <div class="step-content">
-            <div class="step-title">Disparar o Agente Antigravity</div>
-            <div class="step-desc">No terminal que acabou de abrir no Orca, execute:</div>
-            <div class="code-container">
-              <div class="code-header">
-                <span>Terminal Orca (PowerShell / Bash)</span>
-                <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
-              </div>
-              <pre><code># Execução direta com prompt estruturado
-agy "Consulte a issue LIN-204 no Linear via MCP. Implemente a correção solicitada, valide os testes e abra o PR no GitHub."</code></pre>
+            <div class="step-title">Criar a Worktree e Disparar a Execução</div>
+            <div class="step-desc">
+              Clique com o botão direito na tarefa do Linear ➔ <strong>"Create Worktree from Task"</strong>. O Orca abre o terminal WebGL na pasta isolada com acesso instantâneo ao <code>.mcp.json</code>. Dispare o comando da IA para resolver a tarefa e abrir o PR.
             </div>
           </div>
         </div>
 
-        <div class="callout callout-success">
-          <div class="callout-title">🎉 O que acontece nos bastidores:</div>
-          <div class="callout-content">
-            1. O Antigravity consulta a issue no Linear via MCP e extrai os requisitos.<br>
-            2. Codifica a solução nos arquivos da Worktree isolada.<br>
-            3. Roda o linter e os testes locais.<br>
-            4. Realiza commit e push para o GitHub.<br>
-            5. Cria o Pull Request com link direto para o Linear.<br>
-            6. O Orca notifica você que a tarefa está pronta para revisão visual!
+        <!-- 3. Troubleshooting de Erros Comuns -->
+        <h3 style="font-size: 1.2rem; color: #fff; margin: 32px 0 12px; display: flex; align-items: center; gap: 8px;">
+          <span>🛠️</span> 3. Diagnóstico de Erros Comuns e Como Resolver
+        </h3>
+
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 16px;">
+          A grande maioria das falhas de execução ocorre por configurações de ambiente do Sistema Operacional. Veja como identificar e resolver cada caso:
+        </p>
+
+        <!-- Erro 1 -->
+        <div class="arch-card" style="border-left: 4px solid #ef4444; margin-bottom: 18px;">
+          <div class="arch-card-title" style="color: #f87171; display: flex; align-items: center; gap: 8px;">
+            <span>🔴</span> Erro 1: "Command not found" / "Não foi possível encontrar a instalação"
+          </div>
+          <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px;">
+            <strong>Por que ocorre?</strong> Aplicativos de interface gráfica (como o Orca) não herdam o perfil completo do seu terminal (<code>.bashrc</code>, <code>.zshrc</code> ou alterações recentes de PATH no Windows). O pacote foi instalado globalmente pelo npm/pip, mas o Orca não o encontra.
+          </div>
+          <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; margin-bottom: 10px;">
+            <strong>Como diagnosticar no terminal do Orca:</strong><br>
+            <span style="color: #38bdf8;">Windows:</span> <code>where claude</code> &nbsp;|&nbsp; <code>where agy</code><br>
+            <span style="color: #38bdf8;">macOS/Linux:</span> <code>which claude</code> &nbsp;|&nbsp; <code>which agy</code>
+          </div>
+          <div style="font-size: 0.88rem; color: #34d399; font-weight: 600; margin-bottom: 6px;">
+            ✅ Solução Definitiva: Usar o Caminho Absoluto nas configurações do Orca
+          </div>
+          <div style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.6;">
+            Substitua o comando simples pelo caminho completo do arquivo executável:
+            <ul style="margin-left: 18px; margin-top: 4px;">
+              <li><strong>Windows (npm global):</strong> <code>C:\Users\SEU_USUARIO\AppData\Roaming\npm\claude.cmd</code></li>
+              <li><strong>Windows (Python pip):</strong> <code>C:\Users\SEU_USUARIO\AppData\Local\Programs\Python\Python313\Scripts\aider.exe</code></li>
+              <li><strong>macOS / Linux:</strong> <code>/usr/local/bin/claude</code> ou <code>~/.nvm/versions/node/v20.x/bin/claude</code></li>
+            </ul>
           </div>
         </div>
+
+        <!-- Erro 2 -->
+        <div class="arch-card" style="border-left: 4px solid #f59e0b; margin-bottom: 18px;">
+          <div class="arch-card-title" style="color: #fbbf24; display: flex; align-items: center; gap: 8px;">
+            <span>⚠️</span> Erro 2: "Script desabilitado / Execution Policy" (Windows)
+          </div>
+          <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 8px;">
+            <strong>Sintoma:</strong> O terminal exibe <em>"claude.ps1 não pode ser carregado porque a execução de scripts foi desabilitada neste sistema"</em>.
+          </div>
+          <div style="font-size: 0.88rem; color: #34d399; font-weight: 600; margin-bottom: 6px;">
+            ✅ Solução:
+          </div>
+          <div style="font-size: 0.84rem; color: var(--text-muted);">
+            Abra o PowerShell como Administrador e execute uma única vez:
+            <div class="code-container" style="margin: 6px 0;">
+              <pre><code>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Erro 3 -->
+        <div class="arch-card" style="border-left: 4px solid #38bdf8; margin-bottom: 18px;">
+          <div class="arch-card-title" style="color: #38bdf8; display: flex; align-items: center; gap: 8px;">
+            <span>🔑</span> Erro 3: "API Key Missing" / Chave da IA não detectada
+          </div>
+          <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 8px;">
+            <strong>Sintoma:</strong> O agente inicia e fecha imediatamente dizendo <em>"No API key provided"</em>.
+          </div>
+          <div style="font-size: 0.88rem; color: #34d399; font-weight: 600; margin-bottom: 6px;">
+            ✅ Solução:
+          </div>
+          <div style="font-size: 0.84rem; color: var(--text-muted);">
+            Defina a chave em <strong>Settings ➔ Agents & Runners</strong> no Orca, ou crie um arquivo <code>.env</code> na raiz da pasta:
+            <div class="code-container" style="margin: 6px 0;">
+              <pre><code>ANTHROPIC_API_KEY=sk-ant-api03-...
+OPENAI_API_KEY=sk-proj-...
+GEMINI_API_KEY=AIzaSy...</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Erro 4 -->
+        <div class="arch-card" style="border-left: 4px solid #a855f7;">
+          <div class="arch-card-title" style="color: #c084fc; display: flex; align-items: center; gap: 8px;">
+            <span>⏳</span> Erro 4: Agente Congelado Aguardando Confirmação Interativa (y/n)
+          </div>
+          <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 8px;">
+            <strong>Sintoma:</strong> O processo não avança porque está solicitando permissão manual para rodar comandos bash em segundo plano.
+          </div>
+          <div style="font-size: 0.88rem; color: #34d399; font-weight: 600; margin-bottom: 6px;">
+            ✅ Solução:
+          </div>
+          <div style="font-size: 0.84rem; color: var(--text-muted);">
+            Configure flags não-interativas ou permissões autônomas nas configurações de inicialização:
+            <ul style="margin-left: 18px; margin-top: 4px;">
+              <li><strong>Claude Code:</strong> <code>claude --dangerously-skip-permissions</code></li>
+              <li><strong>Aider:</strong> <code>aider --yes --auto-commits</code></li>
+              <li><strong>Antigravity:</strong> <code>agy --auto-approve</code></li>
+            </ul>
+          </div>
+        </div>
+
       </section>
 
       <!-- Section 6: Superpoderes do Orca -->
