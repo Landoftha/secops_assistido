@@ -1,0 +1,18 @@
+### 1) O que aconteceu (Resumo Simples)
+O usuário **`{{ alert.user_name }}`** (`{{ alert.user_type }}`) executou a operação **`{{ alert.event_name }}`** no serviço `{{ alert.event_source }}` a partir do endereço IP **`{{ alert.source_ip }}`** na região `{{ alert.aws_region }}` às `{{ alert.timestamp }}`. A operação registrou status **`{{ alert.status }}`**{% if alert.error_code %} com erro **`{{ alert.error_code }}`**{% endif %}, envolvendo **{{ alert.request_count }} requisição(ões)** e **{{ alert.bytes_transferred }} bytes** transferidos no recurso `{{ alert.resource_arn }}`.
+
+### 2) Por que foi considerado anômalo
+Este evento foi classificado com severidade **{{ alert.final_severity }}** pela combinação dos motores do `secops_core`:
+{% if alert.is_zscore_anomaly %}- **Desvio Estatístico (Z-Score = {{ alert.zscore_value }}):** O volume de requisições ({{ alert.request_count }}) ou de dados transferidos ({{ alert.bytes_transferred }} bytes) superou significativamente o padrão histórico normal ($|Z| > 3.0$).
+{% endif %}{% if alert.is_iforest_anomaly %}- **Anomalia Multivariada (Isolation Forest = {{ alert.iforest_score }}):** A combinação de fatores contextuais ({% if alert.is_off_hours %}horário atípico às {{ alert.hour_of_day }}h, {% endif %}{% if alert.is_external_ip %}IP externo fora da rede corporativa, {% endif %}{% if not alert.mfa_authenticated %}ausência de autenticação MFA, {% endif %}latência de {{ alert.latency_ms }} ms) diverge do comportamento legítimo esperado.
+{% endif %}{% if alert.cloudtrail_rules_triggered %}{% for rule in alert.cloudtrail_rules_triggered %}- **Regra CloudTrail `{{ rule.rule_code }}` ({{ rule.rule_name }}):** {{ rule.reason }}
+{% endfor %}{% endif %}
+
+### 3) Risco Potencial
+{% if alert.final_severity == "CRITICAL" %}Comprometimento crítico de credenciais ou controle administrativo da conta AWS, podendo resultar em escalação de privilégio persistente, desativação de rastreabilidade de auditoria ou exposição/exfiltração de dados sensíveis.{% elif alert.final_severity == "HIGH" %}Tentativa ativa de intrusão, força bruta, reconhecimento não autorizado de segredos ou extração massiva de objetos de armazenamento corporativo.{% else %}Atividade operacional fora do padrão basal que pode indicar estágio inicial de reconhecimento ou uso indevido de credenciais técnicas.{% endif %}
+
+### 4) Ação Recomendada
+1. Verificar imediatamente com o proprietário da identidade **`{{ alert.user_name }}`** se a ação em `{{ alert.resource_arn }}` foi autorizada.
+2. Bloquear ou restringir temporariamente o IP de origem **`{{ alert.source_ip }}`** nos controles de rede/WAF caso não seja reconhecido.
+3. {% if not alert.mfa_authenticated %}Exigir MFA imediato, rotacionar chaves de acesso (`AccessKeys`) e encerrar sessões STS ativas do usuário.{% else %}Revisar as políticas IAM anexadas recentemente e auditar todas as ações subsequentes dessa sessão no CloudTrail.{% endif %}
+*(Explicação gerada via Motor Template Jinja2 Local — Modo Resiliente Custo Zero)*

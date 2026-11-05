@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "secops_core"
+version = "0.1.0"
+description = "Pipeline Local de SecOps Assistido por IA a Custo Zero (Mãos na Tech)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.29.0",
+    "streamlit>=1.33.0",
+    "scikit-learn>=1.4.0",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "jinja2>=3.1.3",
+    "httpx>=0.27.0",
+    "requests>=2.31.0",
+    "pydantic>=2.6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.1.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["secops_core*", "api*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
