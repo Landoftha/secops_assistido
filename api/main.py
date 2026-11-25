@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
@@ -31,23 +30,38 @@ app = FastAPI(
 )
 
 
+VALID_SEVERITIES = {"CRITICAL", "HIGH", "MEDIUM", "LOW"}
+VALID_DETECTORS = {"ZSCORE", "Z-SCORE", "IFOREST", "ISOLATION_FOREST", "ML", "CLOUDTRAIL", "RULES", "RULE"}
+
+
 def _get_db() -> SecOpsDatabase:
-    db_path = os.getenv("SQLITE_DB_PATH") or str(get_settings().sqlite_db_path)
-    return SecOpsDatabase(db_path=db_path)
+    return SecOpsDatabase(db_path=get_settings().sqlite_db_path)
+
+
+def _validation_error(param: str, message: str, value: str) -> HTTPException:
+    return HTTPException(
+        status_code=422,
+        detail=[{"type": "value_error", "loc": ["query", param], "msg": message, "input": value}],
+    )
 
 
 @app.get("/health", response_model=HealthResponse, tags=["Monitoramento"])
 def healthcheck() -> HealthResponse:
     """Retorna o status operacional da API, do banco SQLite e do servidor Ollama local."""
-    db = _get_db()
-    stats = db.get_summary_stats()
-    explainer = OllamaExplainerClient()
-    ollama_status = explainer.check_health(use_cache=True)
+    db_path = get_settings().sqlite_db_path
+    try:
+        db = SecOpsDatabase(db_path=db_path)
+        total_logs = db.get_summary_stats()["total_logs"]
+        sqlite_ok = True
+    except Exception:
+        total_logs = 0
+        sqlite_ok = False
+    ollama_status = OllamaExplainerClient().check_health(use_cache=True)
     return HealthResponse(
-        status="ok",
-        sqlite_connected=True,
-        sqlite_db_path=str(db.db_path),
-        total_logs_in_db=stats["total_logs"],
+        status="ok" if sqlite_ok else "degraded",
+        sqlite_connected=sqlite_ok,
+        sqlite_db_path=str(db_path),
+        total_logs_in_db=total_logs,
         ollama=ollama_status,
     )
 
@@ -75,6 +89,10 @@ def list_logs(
     offset: int = Query(default=0, ge=0),
 ) -> PaginatedLogsResponse:
     """Lista logs processados com suporte a múltiplos filtros combinados e paginação."""
+    if severity and severity.upper() not in VALID_SEVERITIES:
+        raise _validation_error("severity", "Use CRITICAL, HIGH, MEDIUM ou LOW.", severity)
+    if detector_type and detector_type.upper() not in VALID_DETECTORS:
+        raise _validation_error("detector_type", "Use ZSCORE, IFOREST ou CLOUDTRAIL.", detector_type)
     db = _get_db()
     items = db.query_logs(
         is_anomaly=is_anomaly,
@@ -107,16 +125,16 @@ def get_anomaly_detail(event_id: str) -> LogEventSchema:
 @app.post("/pipeline/run", response_model=PipelineRunResponse, tags=["Orquestração"])
 def trigger_pipeline(payload: PipelineRunRequest) -> PipelineRunResponse:
     """Dispara sob demanda a geração opcional de logs, detecção híbrida e persistência SQLite."""
-    db = _get_db()
-    logs_path = os.getenv("LOGS_JSONL_PATH") or str(get_settings().logs_jsonl_path)
+    settings = get_settings()
     result = run_detection_pipeline(
-        logs_path=logs_path,
-        db_path=db.db_path,
+        logs_path=settings.logs_jsonl_path,
+        db_path=settings.sqlite_db_path,
         regenerate_logs=payload.regenerate_logs,
         total_records=payload.total_records,
         anomaly_rate=payload.anomaly_rate,
         seed=payload.seed,
         generate_explanations=payload.generate_explanations,
+        max_explanations=payload.max_explanations,
     )
     return PipelineRunResponse(**result)
 
@@ -130,9 +148,10 @@ def explain_anomaly(event_id: str) -> ExplainResponse:
         raise HTTPException(status_code=404, detail=f"Evento '{event_id}' não encontrado.")
 
     explainer = OllamaExplainerClient()
-    health = explainer.check_health(use_cache=True)
     explanation = explainer.explain_alert(record)
     db.update_ai_explanation(event_id, explanation)
+    # Consultado após a geração: reflete fallback acionado por falha/timeout durante a chamada
+    health = explainer.check_health(use_cache=True)
     return ExplainResponse(
         event_id=event_id,
         ai_explanation=explanation,

@@ -69,6 +69,7 @@ class SummaryStatsResponse(BaseModel):
     by_detector: Dict[str, int]
     top_suspicious_ips: List[Dict[str, Any]]
     top_anomalous_events: List[Dict[str, Any]]
+    top_suspicious_users: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class PaginatedLogsResponse(BaseModel):
@@ -87,6 +88,12 @@ class PipelineRunRequest(BaseModel):
     anomaly_rate: float = Field(default=0.06, ge=0.01, le=0.45)
     seed: int = Field(default=42)
     generate_explanations: bool = Field(default=True)
+    max_explanations: int = Field(
+        default=20,
+        ge=0,
+        le=500,
+        description="Máximo de novas explicações de IA geradas nesta execução (explicações existentes são reaproveitadas).",
+    )
 
 
 class PipelineRunResponse(BaseModel):

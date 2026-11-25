@@ -166,10 +166,12 @@ O MCP padroniza como qualquer agente descobre e chama ferramentas através de ch
 
 ### 4.2 Configurando o Linear MCP Server
 
-O servidor MCP do Linear é disponibilizado via Node.js/NPX:
-- **Pacote**: `@modelcontextprotocol/server-linear` (ou compatíveis como `mcp-server-linear`).
-- **Comando de execução**: `npx -y @modelcontextprotocol/server-linear`
-- **Variável de Ambiente necessária**: `LINEAR_API_KEY`
+O Linear disponibiliza um **servidor MCP oficial remoto** em `https://mcp.linear.app/mcp`:
+- **Ponte stdio (Node.js/NPX)**: `npx -y mcp-remote https://mcp.linear.app/mcp`
+- **Autenticação**: OAuth — na primeira execução o navegador abre para você autorizar o workspace. **Não é necessário colocar `LINEAR_API_KEY` no arquivo.**
+- **Clientes com suporte a HTTP remoto** (ex.: Claude Code) podem apontar direto: `claude mcp add --transport http linear https://mcp.linear.app/mcp`
+
+> ⚠️ O pacote `@modelcontextprotocol/server-linear` **não existe no npm** (retorna 404) — se ele estiver na sua configuração, o servidor nunca conecta.
 
 ---
 
@@ -191,10 +193,7 @@ No seu repositório de projeto (ou na raiz onde o Orca gerencia suas workspaces)
   "mcpServers": {
     "linear": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-linear"],
-      "env": {
-        "LINEAR_API_KEY": "lin_api_SEU_TOKEN_DO_LINEAR_AQUI"
-      }
+      "args": ["-y", "mcp-remote", "https://mcp.linear.app/mcp"]
     },
     "github": {
       "command": "npx",
@@ -207,7 +206,7 @@ No seu repositório de projeto (ou na raiz onde o Orca gerencia suas workspaces)
 }
 ```
 
-> 🔒 **Dica de Segurança:** Adicione `.mcp.json` ao seu `.gitignore` caso utilize tokens diretos no arquivo, ou configure as variáveis de ambiente no seu sistema operacional (`export LINEAR_API_KEY=...` / `$env:LINEAR_API_KEY=...`).
+> 🔒 **Dica de Segurança:** Adicione `.mcp.json` ao seu `.gitignore` caso utilize tokens diretos no arquivo, ou configure as variáveis de ambiente no seu sistema operacional (`export GITHUB_PERSONAL_ACCESS_TOKEN=...` / `$env:GITHUB_PERSONAL_ACCESS_TOKEN=...`).
 
 ### Inspecionando o MCP dentro do Orca
 1. No Orca, vá em **Settings** -> **Repository** -> **MCP Configs**.
@@ -571,12 +570,12 @@ Diferente das cerimônias burocráticas do Scrum tradicional, o Linear gerencia 
 ## 8. Troubleshooting & Dúvidas Frequentes
 
 ### 1. O servidor MCP do Linear ou GitHub não conecta (ícone vermelho no Orca)
-- **Causa:** Node.js/npx desatualizado ou token de API incorreto/expirado.
+- **Causa:** Node.js/npx desatualizado, pacote inexistente na configuração (ex.: `@modelcontextprotocol/server-linear`, que não existe no npm), autorização OAuth pendente ou token do GitHub incorreto/expirado.
 - **Solução:** No terminal, teste rodar manualmente:
   ```bash
-  npx -y @modelcontextprotocol/server-linear
+  npx -y mcp-remote https://mcp.linear.app/mcp
   ```
-  Certifique-se de que a variável `LINEAR_API_KEY` está preenchida corretamente sem aspas extras.
+  Conclua a autorização OAuth no navegador. Para o GitHub, confira se `GITHUB_PERSONAL_ACCESS_TOKEN` está preenchido sem aspas extras.
 
 ### 2. "Resource not found" ao tentar buscar issues via MCP
 - **Causa:** O Personal Access Token do Linear não tem permissão no Workspace desejado ou você faz parte de múltiplos workspaces.

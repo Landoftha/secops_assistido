@@ -546,7 +546,7 @@ def generate_synthetic_logs(
     total_records: int = 1500,
     anomaly_rate: float = 0.06,
     seed: int = 42,
-    mirror_root_jsonl: bool = True,
+    mirror_root_jsonl: bool = False,
 ) -> Dict[str, Any]:
     """Gera o arquivo JSONL de logs sintéticos e retorna estatísticas de validação."""
     if total_records <= 0:
@@ -577,7 +577,8 @@ def generate_synthetic_logs(
         for rec in records:
             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
-    # Mantém cópia sincronizada na raiz caso scripts/usuário referenciem logs_simulados.jsonl direto
+    # Opcional: mantém cópia sincronizada na raiz (apenas quando solicitado explicitamente,
+    # para que testes/execuções com caminho customizado não sobrescrevam o arquivo de demonstração)
     if mirror_root_jsonl:
         root_file = Path("logs_simulados.jsonl")
         if root_file.resolve() != out_file.resolve():
@@ -676,6 +677,11 @@ def main() -> None:
         default=42,
         help="Semente aleatória para reprodutibilidade (default: 42)",
     )
+    parser.add_argument(
+        "--mirror-root",
+        action="store_true",
+        help="Também grava uma cópia em ./logs_simulados.jsonl (raiz do projeto)",
+    )
     args = parser.parse_args()
 
     stats = generate_synthetic_logs(
@@ -683,6 +689,7 @@ def main() -> None:
         total_records=args.count,
         anomaly_rate=args.anomaly_rate,
         seed=args.seed,
+        mirror_root_jsonl=args.mirror_root,
     )
     print(json.dumps(stats, indent=2, ensure_ascii=False))
 

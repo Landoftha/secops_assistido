@@ -73,7 +73,13 @@ def run_detection_pipeline(
     generate_explanations: bool = False,
     max_explanations: int = 100,
 ) -> Dict[str, Any]:
-    """Executa o pipeline completo de ingestão, detecção híbrida e gravação no SQLite."""
+    """Executa o pipeline completo de ingestão, detecção híbrida e gravação no SQLite.
+
+    O banco passa a refletir exatamente o dataset processado (eventos que não estão mais
+    no JSONL são removidos). Explicações de IA já persistidas são reaproveitadas e no
+    máximo `max_explanations` novas explicações são geradas por execução (CRITICAL primeiro),
+    evitando bloquear a API/painel em lotes grandes com o Ollama ativo.
+    """
     t_start = time.perf_counter()
     settings = get_settings()
     target_logs_path = Path(logs_path) if logs_path is not None else settings.logs_jsonl_path
@@ -91,9 +97,15 @@ def run_detection_pipeline(
     if not records:
         return {
             "status": "empty",
+            "logs_path": str(target_logs_path),
+            "db_path": str(target_db_path),
             "records_processed": 0,
             "skipped_lines": skipped_lines,
             "anomalies_detected": 0,
+            "anomaly_rate": 0.0,
+            "by_severity": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0},
+            "by_detector": {"zscore": 0, "isolation_forest": 0, "cloudtrail_rules": 0},
+            "explanations_generated": 0,
             "elapsed_ms": round((time.perf_counter() - t_start) * 1000, 2),
         }
 
@@ -140,24 +152,39 @@ def run_detection_pipeline(
         )
         enriched_rows.append(row_dict)
 
-    # 4. Explicações via IA Local (se habilitado e módulo explainer disponível)
+    db = SecOpsDatabase(target_db_path)
+
+    # 4. Explicações via IA Local (reaproveita as já persistidas; gera no máximo `max_explanations` novas)
     explanations_generated = 0
     if generate_explanations:
-        try:
-            from secops_core.explainer.ollama_client import OllamaExplainerClient
+        from secops_core.explainer.ollama_client import OllamaExplainerClient
 
-            explainer = OllamaExplainerClient()
-            for row in enriched_rows:
-                if row["is_anomaly"] and explanations_generated < max_explanations:
-                    row["ai_explanation"] = explainer.explain_alert(row)
-                    explanations_generated += 1
-        except ImportError:
-            pass
+        anomalous_rows = [row for row in enriched_rows if row["is_anomaly"]]
+        existing = db.get_explanations(row["event_id"] for row in anomalous_rows)
+        pending = [row for row in anomalous_rows if row["event_id"] not in existing]
+        pending.sort(key=lambda row: SEVERITY_RANK.get(row["final_severity"], 0), reverse=True)
 
-    # 5. Persistência SQLite
-    db = SecOpsDatabase(target_db_path)
-    upserted = db.bulk_upsert_logs(enriched_rows)
-    summary = db.get_summary_stats()
+        explainer = OllamaExplainerClient()
+        for row in pending[: max(0, int(max_explanations))]:
+            row["ai_explanation"] = explainer.explain_alert(row)
+            explanations_generated += 1
+
+    # 5. Persistência SQLite (o banco passa a refletir exatamente o dataset processado)
+    upserted = db.bulk_upsert_logs(enriched_rows, replace_dataset=True)
+
+    by_severity = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
+    by_detector = {"zscore": 0, "isolation_forest": 0, "cloudtrail_rules": 0}
+    anomalies_detected = 0
+    for row in enriched_rows:
+        if not row["is_anomaly"]:
+            continue
+        anomalies_detected += 1
+        by_severity[row["final_severity"]] = by_severity.get(row["final_severity"], 0) + 1
+    for row in enriched_rows:
+        by_detector["zscore"] += int(bool(row["is_zscore_anomaly"]))
+        by_detector["isolation_forest"] += int(bool(row["is_iforest_anomaly"]))
+        by_detector["cloudtrail_rules"] += int(bool(row["is_cloudtrail_anomaly"]))
+
     elapsed_ms = round((time.perf_counter() - t_start) * 1000, 2)
 
     return {
@@ -166,10 +193,10 @@ def run_detection_pipeline(
         "db_path": str(target_db_path),
         "records_processed": upserted,
         "skipped_lines": skipped_lines,
-        "anomalies_detected": summary["total_anomalies"],
-        "anomaly_rate": summary["anomaly_rate"],
-        "by_severity": summary["by_severity"],
-        "by_detector": summary["by_detector"],
+        "anomalies_detected": anomalies_detected,
+        "anomaly_rate": round(anomalies_detected / max(1, len(enriched_rows)), 4),
+        "by_severity": by_severity,
+        "by_detector": by_detector,
         "explanations_generated": explanations_generated,
         "elapsed_ms": elapsed_ms,
     }
@@ -183,7 +210,15 @@ def main() -> None:
     parser.add_argument("--db", type=str, default=None, help="Caminho para o banco SQLite")
     parser.add_argument("--regenerate", action="store_true", help="Regenera os logs sintéticos antes de rodar")
     parser.add_argument("--count", type=int, default=1500, help="Quantidade de logs ao regenerar")
+    parser.add_argument("--anomaly-rate", type=float, default=0.06, help="Taxa de anomalias ao regenerar")
+    parser.add_argument("--seed", type=int, default=42, help="Semente aleatória (geração e Isolation Forest)")
     parser.add_argument("--explain", action="store_true", help="Gera explicações via IA/Fallback para as anomalias")
+    parser.add_argument(
+        "--max-explanations",
+        type=int,
+        default=100,
+        help="Máximo de novas explicações geradas nesta execução (default: 100)",
+    )
     args = parser.parse_args()
 
     result = run_detection_pipeline(
@@ -191,7 +226,10 @@ def main() -> None:
         db_path=args.db,
         regenerate_logs=args.regenerate,
         total_records=args.count,
+        anomaly_rate=args.anomaly_rate,
+        seed=args.seed,
         generate_explanations=args.explain,
+        max_explanations=args.max_explanations,
     )
     print(json.dumps(result, indent=2, ensure_ascii=False))
 

@@ -97,8 +97,18 @@ class SecOpsDatabase:
         with self.connect() as conn:
             conn.executescript(SCHEMA_SQL)
 
-    def bulk_upsert_logs(self, records: Iterable[Dict[str, Any]]) -> int:
-        """Insere ou atualiza registros em lote com idempotência por event_id."""
+    def bulk_upsert_logs(
+        self,
+        records: Iterable[Dict[str, Any]],
+        replace_dataset: bool = False,
+    ) -> int:
+        """Insere ou atualiza registros em lote com idempotência por event_id.
+
+        Com `replace_dataset=True`, remove na mesma transação os eventos que não fazem
+        parte do lote atual — o banco passa a refletir exatamente o dataset processado
+        (ex.: após regenerar `logs_simulados.jsonl`), preservando as explicações de IA
+        dos eventos que continuam existindo.
+        """
         now_iso = datetime.now(timezone.utc).isoformat()
         rows_to_insert: List[tuple] = []
 
@@ -155,6 +165,9 @@ class SecOpsDatabase:
             )
 
         if not rows_to_insert:
+            if replace_dataset:
+                with self.connect() as conn:
+                    conn.execute("DELETE FROM processed_logs")
             return 0
 
         sql = """
@@ -209,8 +222,34 @@ class SecOpsDatabase:
             processed_at=excluded.processed_at;
         """
         with self.connect() as conn:
+            if replace_dataset:
+                conn.execute("CREATE TEMP TABLE IF NOT EXISTS _batch_ids (event_id TEXT PRIMARY KEY)")
+                conn.execute("DELETE FROM _batch_ids")
+                conn.executemany(
+                    "INSERT OR IGNORE INTO _batch_ids (event_id) VALUES (?)",
+                    ((row[0],) for row in rows_to_insert),
+                )
+                conn.execute("DELETE FROM processed_logs WHERE event_id NOT IN (SELECT event_id FROM _batch_ids)")
             conn.executemany(sql, rows_to_insert)
         return len(rows_to_insert)
+
+    def get_explanations(self, event_ids: Iterable[str]) -> Dict[str, str]:
+        """Retorna o mapa event_id -> ai_explanation já persistido (apenas eventos com explicação)."""
+        ids = list(event_ids)
+        result: Dict[str, str] = {}
+        if not ids:
+            return result
+        with self.connect() as conn:
+            for start in range(0, len(ids), 500):
+                chunk = ids[start : start + 500]
+                placeholders = ",".join("?" for _ in chunk)
+                rows = conn.execute(
+                    f"SELECT event_id, ai_explanation FROM processed_logs "
+                    f"WHERE ai_explanation IS NOT NULL AND event_id IN ({placeholders})",
+                    chunk,
+                ).fetchall()
+                result.update({r["event_id"]: r["ai_explanation"] for r in rows})
+        return result
 
     def update_ai_explanation(self, event_id: str, explanation: str) -> bool:
         """Atualiza a explicação gerada pela IA para um alerta específico."""
@@ -268,6 +307,10 @@ class SecOpsDatabase:
                 clauses.append("is_iforest_anomaly = 1")
             elif dt in ("CLOUDTRAIL", "RULES", "RULE"):
                 clauses.append("is_cloudtrail_anomaly = 1")
+            else:
+                raise ValueError(
+                    f"detector_type inválido: '{detector_type}'. Use ZSCORE, IFOREST ou CLOUDTRAIL."
+                )
 
         where_sql = f"WHERE {' AND '.join(clauses)}" if clauses else ""
         sql = f"""
@@ -317,6 +360,17 @@ class SecOpsDatabase:
                 """
             ).fetchall()
 
+            top_users = conn.execute(
+                """
+                SELECT user_name, COUNT(*) AS cnt
+                FROM processed_logs
+                WHERE is_anomaly = 1
+                GROUP BY user_name
+                ORDER BY cnt DESC
+                LIMIT 5
+                """
+            ).fetchall()
+
             top_events = conn.execute(
                 """
                 SELECT event_name, COUNT(*) AS cnt
@@ -332,7 +386,7 @@ class SecOpsDatabase:
         total_anomalies = int(totals["total_anomalies"] or 0)
         severity_counts = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
         for r in sev_rows:
-            severity_counts[r["final_severity"]] = int(r["cnt"])
+            severity_counts[str(r["final_severity"])] = int(r["cnt"])
 
         return {
             "total_logs": total_logs,
@@ -346,6 +400,7 @@ class SecOpsDatabase:
             },
             "top_suspicious_ips": [{"source_ip": r["source_ip"], "count": int(r["cnt"])} for r in top_ips],
             "top_anomalous_events": [{"event_name": r["event_name"], "count": int(r["cnt"])} for r in top_events],
+            "top_suspicious_users": [{"user_name": r["user_name"], "count": int(r["cnt"])} for r in top_users],
         }
 
     @staticmethod

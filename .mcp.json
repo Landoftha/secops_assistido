@@ -4,11 +4,9 @@
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-linear"
-      ],
-      "env": {
-        "LINEAR_API_KEY": "lin_api_SUBSTITUA_PELA_SUA_CHAVE_AQUI"
-      }
+        "mcp-remote",
+        "https://mcp.linear.app/mcp"
+      ]
     },
     "github": {
       "command": "npx",

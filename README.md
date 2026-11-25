@@ -52,7 +52,18 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 python -m streamlit run dashboard/app.py
 ```
 
-### Passo 5: Executar a Suíte de Testes Automatizados (`pytest`)
+### Passo 5 (Opcional): Ativar explicações com IA local via Ollama
+Sem o Ollama o projeto funciona normalmente usando o **Fallback Inteligente Jinja2**. Para explicações geradas por LLM local:
+```powershell
+# 1. Instale o Ollama (https://ollama.com/download) e baixe um modelo leve
+ollama pull llama3.2
+# 2. Com o Ollama rodando (porta 11434), regenere as explicações
+python -m secops_core.pipeline --explain --max-explanations 20
+```
+* Modelo e endereço configuráveis via `OLLAMA_MODEL` / `OLLAMA_BASE_URL` (veja [`.env.example`](.env.example)).
+* Explicações já salvas são reaproveitadas; use o botão **"Regenerar Explicação com IA"** no painel para refazer um alerta específico.
+
+### Passo 6: Executar a Suíte de Testes Automatizados (`pytest`)
 ```powershell
 python -m pytest -v
 ```
